@@ -1,0 +1,6 @@
+1、要手动将19（类别更换的文件）
+(1)lib/models/bisenetv1.py
+(2)lib/cityscapes_cv2.py
+(3)lib/models/bisenetv2.py
+
+2、如果出现“RuntimeError: [enforce fail at inline_container.cc:209] . file not found: ..."这个错误，在保存的时候加上if dist.get_rank() == 0:
