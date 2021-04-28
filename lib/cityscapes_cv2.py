@@ -100,7 +100,7 @@ class CityScapes(BaseDataset):
     def __init__(self, dataroot, annpath, trans_func=None, mode='train'):
         super(CityScapes, self).__init__(
                 dataroot, annpath, trans_func, mode)
-        self.n_cats = 19#19
+        self.n_cats = 2#19
         self.lb_ignore = 255
         self.lb_map = np.arange(256).astype(np.uint8)
         for el in labels_info:

@@ -263,7 +263,7 @@ def parse_args():
     parse.add_argument('--local_rank', dest='local_rank',
                        type=int, default=-1,)
     parse.add_argument('--weight-path', dest='weight_pth', type=str,
-                       default='/root/caiyancheng/edll-242/BisenetV2/tools/res/model_final_v1.pth',)
+                       default='/remote-home/source/42/cyc19307140030/BisenetV1_new/tools/res/noSp_v1_2021419.pth',)
     parse.add_argument('--port', dest='port', type=int, default=44553,)
     parse.add_argument('--model', dest='model', type=str, default='bisenetv1',)
     return parse.parse_args()

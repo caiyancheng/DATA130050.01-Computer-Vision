@@ -246,8 +246,7 @@ class FeatureFusionModule(nn.Module):
                 wd_params.append(module.weight)
                 if not module.bias is None:
                     nowd_params.append(module.bias)
-            elif isinstance(module, nn.mod
-            .ules.batchnorm._BatchNorm):
+            elif isinstance(module, nn.modules.batchnorm._BatchNorm):
                 nowd_params += list(module.parameters())
         return wd_params, nowd_params
 
@@ -300,7 +299,7 @@ class BiSeNetV1(nn.Module):
 
 
 if __name__ == "__main__":
-    net = BiSeNetV1(2)#19
+    net = BiSeNetV1(2)#19\2
     net.cuda()
     net.eval()
     in_ten = torch.randn(16, 3, 640, 480).cuda()

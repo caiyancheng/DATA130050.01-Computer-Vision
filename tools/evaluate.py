@@ -54,7 +54,8 @@ class MscEvalV0(object):
                         mode='bilinear', align_corners=True)#上/下采样
 
                 im_sc = im_sc.cuda()
-                logits = net(im_sc)[0]#为什么只取0？
+#######################################################################################################
+                logits = net(im_sc)[1]#为什么只取0？
                 logits = F.interpolate(logits, size=size,
                         mode='bilinear', align_corners=True)#[2,2,1024,2048]#变回原来大小
                 probs += torch.softmax(logits, dim=1)#[2,2,1024,2048]#dim=1处是类别数
@@ -272,7 +273,7 @@ def evaluate(cfg, weight_pth):
         )
 
     ## evaluator
-    heads, mious = eval_model(net, 8, cfg.im_root, cfg.val_im_anns)
+    heads, mious = eval_model(net, 2, cfg.im_root, cfg.val_im_anns)
     logger.info(tabulate([mious, ], headers=heads, tablefmt='orgtbl'))
 
 
@@ -281,7 +282,7 @@ def parse_args():
     parse.add_argument('--local_rank', dest='local_rank',
                        type=int, default=-1,)
     parse.add_argument('--weight-path', dest='weight_pth', type=str,
-                       default='/root/caiyancheng/edll-242/BisenetV2/tools/res/model_final_v1_2021331_n2.pth',)#_2021331_n2.pth
+                       default='/remote-home/source/42/cyc19307140030/BisenetV1_new/tools/res/addloss_v1_2021_4_27.pth',)#_2021331_n2.pth
     parse.add_argument('--port', dest='port', type=int, default=44553,)
     parse.add_argument('--model', dest='model', type=str, default='bisenetv1',)
     return parse.parse_args()

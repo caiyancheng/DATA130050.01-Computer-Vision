@@ -18,8 +18,8 @@ np.random.seed(123)
 # args
 parse = argparse.ArgumentParser()
 parse.add_argument('--model', dest='model', type=str, default='bisenetv1',)
-parse.add_argument('--weight-path', type=str, default='/root/caiyancheng/edll-242/BisenetV2/tools/res/model_final_v1_2021331_n2.pth',)
-parse.add_argument('--img-path', dest='img_path', type=str, default='./example1.png',)
+parse.add_argument('--weight-path', type=str, default='/remote-home/source/42/cyc19307140030/BisenetV1_new/tools/res/model_final.pth',)
+parse.add_argument('--img-path', dest='img_path', type=str, default='./picts/4.png',)
 args = parse.parse_args()
 cfg = cfg_factory[args.model]
 
@@ -45,4 +45,4 @@ im = to_tensor(dict(im=im, lb=None))['im'].unsqueeze(0).cuda()
 # inference
 out = net(im)[0].argmax(dim=1).squeeze().detach().cpu().numpy()
 pred = palette[out]
-cv2.imwrite('./res.jpg', pred)
+cv2.imwrite('./picts/res/res4.jpg', pred)

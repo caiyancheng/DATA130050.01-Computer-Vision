@@ -21,11 +21,11 @@ import torch.cuda.amp as amp
 from lib.models import model_factory
 from configs import cfg_factory
 from lib.cityscapes_cv2 import get_data_loader
-from evaluate import eval_model
+from evaluate import eval_model#cyc加.
 from lib.ohem_ce_loss import OhemCELoss
 from lib.lr_scheduler import WarmupPolyLrScheduler
 from lib.meters import TimeMeter, AvgMeter
-from lib.logger import setup_logger, print_log_msg
+from lib.logger import setup_logger, print_log_msg ,printval_log
 
 
 ## fix all random seeds
@@ -124,6 +124,11 @@ def train():
             cfg.ims_per_gpu, cfg.scales, cfg.cropsize,
             cfg.max_iter, mode='train', distributed=is_dist)
 
+    valdl = get_data_loader(
+            cfg.im_root, cfg.val_im_anns,
+            cfg.ims_per_gpu, None, None,
+            mode='val', distributed=is_dist)#cyc
+
     ## model
     net, criteria_pre, criteria_aux = set_model()
 
@@ -138,17 +143,26 @@ def train():
 
     ## meters
     time_meter, loss_meter, loss_pre_meter, loss_aux_meters = set_meters()
+    valtime_meter,valloss_meter, valloss_pre_meter, valloss_aux_meters = set_meters()#cyc
 
     ## lr scheduler
     lr_schdr = WarmupPolyLrScheduler(optim, power=0.9,
         max_iter=cfg.max_iter, warmup_iter=cfg.warmup_iters,
         warmup_ratio=0.1, warmup='exp', last_epoch=-1,)
-
+#########################################################################
+    valditer = enumerate(valdl)
+    for j,(valim,vallabel) in valditer:
+        valim = valim.cuda()
+        vallabel = vallabel.cuda()
+        vallabel = torch.squeeze(vallabel,1)
+#########################################################################cyc写的
     ## train loop
     for it, (im, lb) in enumerate(dl):
         im = im.cuda()
         lb = lb.cuda()
-
+        netval = net
+        valcriteria_aux=criteria_aux
+        valcriteria_pre=criteria_pre#cyc
         lb = torch.squeeze(lb, 1)
 
         optim.zero_grad()
@@ -168,16 +182,27 @@ def train():
         _ = [mter.update(lss.item()) for mter, lss in zip(loss_aux_meters, loss_aux)]
 
         ## print training log message
-        if (it + 1) % 100 == 0:
+        if (it + 1) % 10 == 0:
             lr = lr_schdr.get_lr()
             lr = sum(lr) / len(lr)
             print_log_msg(
                 it, cfg.max_iter, lr, time_meter, loss_meter,
                 loss_pre_meter, loss_aux_meters)
+            ###############################################################################
+            with amp.autocast(enabled=cfg.use_fp16):
+                vallogits, *vallogits_aux = netval(valim)
+                valloss_pre = valcriteria_pre(vallogits, vallabel)
+                valloss_aux = [crit(lgt, vallabel) for crit, lgt in zip(valcriteria_aux, vallogits_aux)]
+                valloss = valloss_pre + sum(valloss_aux)
+            valloss_meter.update(valloss.item())
+            valloss_pre_meter.update(valloss_pre.item())
+            _ = [valmter.update(vallss.item()) for valmter, vallss in zip(valloss_aux_meters, valloss_aux)]
+            printval_log(it, valloss_meter, valloss_pre_meter, valloss_aux_meters)
+            ##################################################################################
         lr_schdr.step()
         if (it + 1) % 1000 == 0:
             state = net.module.state_dict()
-            save_pth = '/root/caiyancheng/edll-242/BisenetV2/tools/res/model_final_v1_2021331_n2.pth'
+            save_pth = '/remote-home/source/42/cyc19307140030/BisenetV1_new/tools/res/addloss_v1_2021_4_27.pth'
             if dist.get_rank() == 0: torch.save(state, save_pth)
 
     ## dump the final model and evaluate the result
