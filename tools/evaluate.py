@@ -55,7 +55,7 @@ class MscEvalV0(object):
 
                 im_sc = im_sc.cuda()
 #######################################################################################################
-                logits = net(im_sc)[1]#为什么只取0？
+                logits = net(im_sc)[0]#为什么只取0？
                 logits = F.interpolate(logits, size=size,
                         mode='bilinear', align_corners=True)#[2,2,1024,2048]#变回原来大小
                 probs += torch.softmax(logits, dim=1)#[2,2,1024,2048]#dim=1处是类别数
@@ -210,7 +210,7 @@ def eval_model(net, ims_per_gpu, im_root, im_anns):
     fps= int(len(dl.dataset)) /T
     print('FPS is:'+str(fps))
     print('T is'+str(T))
-    ##################################################
+    ##################################################cyc写
     heads, mious = [], []
     logger = logging.getLogger()
 
@@ -282,7 +282,7 @@ def parse_args():
     parse.add_argument('--local_rank', dest='local_rank',
                        type=int, default=-1,)
     parse.add_argument('--weight-path', dest='weight_pth', type=str,
-                       default='/remote-home/source/42/cyc19307140030/BisenetV1_new/tools/res/addloss_v1_2021_4_27.pth',)#_2021331_n2.pth
+                       default='/remote-home/source/42/cyc19307140030/BisenetV1_new/allmodel/19classes/19_noFPNandSp_v1.pth',)#_2021331_n2.pth
     parse.add_argument('--port', dest='port', type=int, default=44553,)
     parse.add_argument('--model', dest='model', type=str, default='bisenetv1',)
     return parse.parse_args()
